@@ -3,7 +3,7 @@ Tutorial App Access Control System
 
 This tutorial has three goals:
 - learn how to make a simple user interface in Flutter
-- build the code base of the ACS app that you have to do third milestone of the practicum
+- build the code base of the client app that you have to do in the third milestone of the practicum
 - make the starting point for a flutter exercise
 
 Code base means that some parts of the code you'll probably want to keep them, but others related to the user interface appearance, will definitely be changed.
@@ -23,10 +23,12 @@ Preconditions:
 - you have read the slides on Dart and Flutter, including Flutter "futures"
 - optionally you have also gone through the getting started codelab in [flutter.dev](http://flutter.dev)
 
+<br>
+
 
 # 1. Environment <a id="environment"></a>
 
-Installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it or hte Android emulator etc.) takes time. You will eventually do it in the third milestone but now there are two shortcuts to do this tutorial and to start the exercise right away. 
+Installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it or the Android emulator etc.) takes time. You will eventually do it in the third milestone but now there are two shortcuts to do this tutorial and to start the exercise right away. 
 1. Simplest, no installation required whatsoever : go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same "file", not to different files like in IntelliJ, and consequently you need to not repeat some import sentences.
 <br>
 <br>
@@ -40,10 +42,11 @@ Installing Flutter plus everything needed to develop for Android (the Android vi
 <br>
 Then 
 ![](linux_desktop.png)
+
 <br>
 
 
-# 1. First two screens
+# 2. First two screens
 
 First step is to create Dart classes to represent partitions, spaces and doors. These classes won't have methods but just hold data to be displayed in the user interface. Hence, we won't be able to order any action yet.
 
@@ -54,7 +57,7 @@ Since the data to show is different for areas and doors, there will be two diffe
 For the moment we will instantiate a fixed tree in Dart, that of the simulator building. In this way we defer the connection to the ACU webserver to a later stage and start simple. Later on, we will discard this tree and the data shown will be the answer to a REST query to the ACU webserver, a ``get_children`` request.
 
 
-## 1.1 Create the data to show
+## 2.1 Create the data to show
 
 Launch IntelliJ and create a new Flutter project named `tutorial_acs`. Let the wizard create the `lib/main.dart` file for you. Add a new Dart file to the lib folder named `tree.dart` with the following content:
 
@@ -166,7 +169,9 @@ root room1
 child D5, state unlocked, closed true
 ```
 
-## 1.2 Create a screen to show areas
+<br>
+
+## 2.2 Create a screen to show areas
 
 **1.** In IntelliJ, open file `main.dart` and replace its content by this.
 
@@ -208,6 +213,8 @@ class MyApp extends StatelessWidget {
 ```
 
 <img src="hello.png" style="border: 2px solid black;">
+
+<br>
 
 Now we are going to make the screen that shows the children partitions and spaces of a partition, that is the root of a ``Tree`` object.
 
@@ -280,7 +287,7 @@ class _ScreenPartitionState extends State<ScreenPartition> {
 }
 ```
 
-**7.** Now we are going to edit the ``build()`` method so that it draws a list view whose items are the childs of the tree. Replace the stub build method by this:
+**6.** Now we are going to edit the ``build()`` method so that it draws a list view whose items are the childs of the tree. Replace the stub build method by this:
 
 ```dart
 @override
@@ -310,7 +317,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-**8.** Note that the named constructor of ``Listview`` has a parameter ``itemBuilder`` that expects a function returning the widget to show as a certain position (index) of the list. This function is ``_buildRow()``:
+**7.** Note that the named constructor of ``Listview`` has a parameter ``itemBuilder`` that expects a function returning the widget to show as a certain position (index) of the list. This function is ``_buildRow()``:
 
 
 ```dart
@@ -332,7 +339,7 @@ Widget _buildRow(Area area, int index) {
 }
 ```
 
-**9.** Finally in ``main.dart`` replace ``home: Scaffold(...)`` by `` home: const ScreenPartition()``. Last thing: there's a Home button on the top right corner hidden under the debug banner. To remove the banner add this line:
+**8.** Finally in ``main.dart`` replace ``home: Scaffold(...)`` by `` home: const ScreenPartition()``. Last thing: there's a Home button on the top right corner hidden under the debug banner. To remove the banner add this line:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -367,12 +374,13 @@ class MyApp extends StatelessWidget {
 
 ```
 
-**10.** Now run again with hot reload <img src="hotreload.png"> and this is what we get:
+**9.** Now run again with hot reload <img src="hotreload.png"> and this is what we get:
 
 <img src="screen_partition.png" style="border: 2px solid black;">
 
+<br>
 
-## 1.3 Creating the screen to show doors
+## 2.3 Creating the screen to show doors
 
 We are going to make another screen to show the doors of a space. This is necessary because the data to show for doors is different from that of spaces and partitions. In a forthcoming step we'll link the two screens, that is, when you tap on a space in a view list you'll see its doors.
 
@@ -403,10 +411,11 @@ home: ScreenSpace(), // ScreenPartition()
 ```
 
 <img src="screen_space.png" style="border: 2px solid black;">
+
 <br>
 
 
-## 1.4 Navigation
+## 2.4 Navigation
 
 We are going now to implement the navigation through the hierarchy of areas. This involves three things:
 
@@ -480,7 +489,7 @@ home: const ScreenPartition(id: "building"),
 // TODO: this is ugly, the code depends on the particular tree
 ```
 
-## 1.5 Colors
+## 2.5 Colors
 
 Last thing we will do is to add some color to the two screens we have implemented. Why color ? "Color creates meaning and communicates hierarchy, state, and brand", see Material documentation [here](https://m3.material.io/styles/color/the-color-system/key-colors-tones). Basically, an app instantiates a ``MaterialApp`` that has a ``ColorScheme``. This color scheme defines a set of colors labeled as primary, secondary, tertiary, plus onPrimary etc. These colors are shades or tones of a main color like ``Colors.blue`` or ``Colors.deepPurple`` (the default). Depending on the prominence or accent you want to give to an element of the interface (a button, text, text in the app bar, action buttons etc.) you can set its color as one of the color scheme.
 
@@ -504,71 +513,161 @@ appBar: AppBar(
   // that is, on top of primary     
 ```
 
-This produces the screens of the animation at the begining of this tutorial.
+This produces the screens of the animation at the begining of this tutorial. 
+
+<br>
+
+# 3. Connexion with the Java webserver : server side
+
+If you have been using Dartpad for point 1-2, now you have to move the Flutter code to an IntelliJ project, with desktop as target, or your mobile connected to a USB port, or use the Android emulator, because we are going to connect the app client with the Java webserver implementing de ACU.
+
+Until now we have been working with fake, fixed tree of areas and doors. Fake because it lives on the side of the app, and fixed because the user can not perform actions to change it. Now we are going to get real data from the Java webserver through its REST API, that is, by http requests just like the simulator did. 
+
+However, we are not going to implement actions to lock and unlock partitions and spaces and maybe others. It is up to you to design and implement this kind of interactions. We are just going to navigate the "real" hierarchy in the server.
+
+Basically we have to replace the calls to ``getTree(id)`` in Flutter, by sending a request to the server asking for the children of the node with a given id. The webserver answers with a (maybe long) string that, following the JSON format, contains information of the node with the passed id plus its children. If children are doors, information is their id plus state and if closed or not. The string answer arrives to the Flutter app that decodes it, meaning the app transforms it to a Dart Map, a dictionary of keys (id) and values. This dictionary is then converted to a ``Tree`` object like those ``getTree()`` returns now.
+
+We will start with the changes on the server side.
 
 
-# 2. Implement the Java webserver
-
-Until now we have been working with fake, fixed data of projects, tasks and intervals. Now we are going to get real data from the Java webserver through its REST API, that is, by http requests.
-
-We'll want our webserver to listen to port 8080 and answer to the following requests:
-
-- ``http://10.0.2.2:8080/get_tree?n`` returns the one-level tree that has as root a certain task or project (thus, an activity) with id equal to `n`, an integer number. The tree is represented as a JSON string, like those returned by ``getTree()`` and ``getTreeTask()`` methods in `tree.dart`.
-
-- ``http://10.0.2.2:8080/start?n `` and ``http://10.0.2.2:8080/stop?n `` do not return any value but start or stop counting time of a task with id equal to `n`
-
-Open your Java time tracker project and follow these steps:
-
-
-Note an important detail in this line in method ``makeBodyAnswer()``:
+**1.** Add the class ``RequestChildren`` (imports not listed). Its goal is to build a JSON object with the children of the area with a certain id.
 
 ```java
-body = activity.toJson(1).toString();
+public class RequestChildren implements Request {
+  private final String areaId;
+  private JSONObject jsonTree; // 1 level tree, root and children
+
+  public RequestChildren(String areaId) {
+    this.areaId = areaId;
+  }
+
+  public String getAreaId() {
+    return areaId;
+  }
+
+  @Override
+  public JSONObject answerToJson() {
+    return jsonTree;
+  }
+
+  @Override
+  public String toString() {
+    return "RequestChildren{areaId=" + areaId + "}";
+  }
+
+  public void process() {
+    Area area = DirectoryAreas.getInstance().findAreaById(areaId);
+    jsonTree = area.toJson(1);
+  }
+}
 ```
-The 1 means the desired depth of the tree, root plus its children and no more descendants. Each recursive call to ``toJson`` decrements the passed depth value, when received depth is zero do nothing.
 
-In the Java class ``Area`` (superclass of ``Partition`` and ``Space``) add this method:
+Note an important detail in the last line, the parameter ``1``. It means the desired depth of the tree, a node plus its children and no more descendants. 
 
-```java
+**2.** Add methods ``toJson()``
 
+Each recursive call to ``toJson`` decrements the passed depth value, when received depth is zero, the methods ``toJson()`` do nothing :
+
+- in ``Area`` (superclass of ``Partition`` and ``Space``)
+
+  ```java
+  public abstract JSONObject toJson(int depth);
+  ```
+
+- in ``Partition``
+
+  ```java
+  public JSONObject toJson(int depth) {
+    // for depth=1 only the root and children, 
+    // for recusive = all levels use Integer.MAX_VALUE
+    JSONObject json = new JSONObject();
+    json.put("class", "partition");
+    json.put("id", id);
+    JSONArray jsonAreas = new JSONArray();
+    if (depth > 0) {
+      for (Area a : areas) {
+        jsonAreas.put(a.toJson(depth - 1));
+      }
+      json.put("areas", jsonAreas);
+    }
+    return json;
+  }
+  ```
+
+- in ``Space`` :
+
+  ```java
+  public JSONObject toJson(int depth) { // depth not used here
+    JSONObject json = new JSONObject();
+    json.put("class", "space");
+    json.put("id", id);
+    JSONArray jsonDoors = new JSONArray();
+    for (Door d : doorsGivingAccess) {
+      jsonDoors.put(d.toJson());
+    }
+    json.put("access_doors", jsonDoors);
+    return json;
+  }
+  ```
+
+- in ``Door`` (but this was already in the code we gave you)
+
+  ```java
+  public JSONObject toJson() {
+    JSONObject json = new JSONObject();
+    json.put("id", id);
+    json.put("state", getStateName());
+    json.put("closed", closed);
+    return json;
+  }
+  ```
+
+**3.** In the Flutter app we have resorted to the following trick to get the children of the root node in the tree (step 2 of section 2.4):
+
+```dart
+home: const ScreenPartition(id: "building"),
+// TODO: this is ugly, the code depends on the particular tree
 ```
 
-In ``Partition`` :
+But of course the client app doesn't know the id of the root node. So will add code to method ``findAreaById()`` that returns the root area if the parameter is the string ``"ROOT"``, and replace ``"building"`` by ``"ROOT"`` in the former app code.
 
 ```java
-
+public Area findAreaById(String id) {
+  if (id.equals("ROOT")) {
+    // Special id that means that the wanted area is the root. 
+    // This is because the Flutter app client doesn't know the 
+    // id of the root, differently from the simulator
+    return rootArea;
+  } else {
+    //...
+  }
 ```
 
-In ``Space`` :
+**4.** In the ``Webserver`` class
 
 ```java
-
+switch (tokens[0]) {
+  :
+  :
+  case "get_children":
+    request = makeRequestChildren(tokens);
+    break;
 ```
 
-In ``Door`` :
-
 ```java
-
+private RequestChildren makeRequestChildren(String[] tokens) {
+  String areaId = tokens[1];
+  return new RequestChildren(areaId);
+}
 ```
 
 <br>
 
+# 4. Connexion with the Java webserver : client side
 
-**4.** To check everything works, open a web browser and go to URL ``http://localhost:8080/get_tree?0``, you should see this:
+Now switch to the Flutter project. We have to add code to send http requests to the server and get the corresponding answer.
 
-|    |    |
-|:---:|:---:|
-|![](get_tree1.png) | ![](get_tree2.png)|
-
-**5.** You can also try to start and stop the task. Finding the id of the task named `transportation` (suppose it's 6) and then go to ``http://localhost:8080/start?6``, wait some seconds, go to ``http://localhost:8080/stop?6`` and ``http://localhost:8080/get_tree?6`` to check an interval has been created and duration is some seconds.
-
----
-
-# 3. Connect the Flutter app to the Java webserver
-
-Now switch to the Flutter project. We have to add code to send http requests to the server and get the corresponding answer. This answer is only needed for the ``get_tree`` request because it contains what we have to show next in the interface.
-
-Read [this part](https://flutter.dev/docs/cookbook/networking/update-data) of the Flutter documentation to understand the code below.
+**Important** : study [this part](https://flutter.dev/docs/cookbook/networking/update-data) of the Flutter documentation to understand the code below.
 
 **1.** Make a new file ``requests.dart`` with the following content:
 
