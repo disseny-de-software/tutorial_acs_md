@@ -14,7 +14,7 @@ This is what we are going to build:
 <br>
 
 What this animation shows is :
-- two types of screens, one for partitions and spaces, another for the doors giving access to an space
+- two types of screens, one for partitions and spaces, another for the doors giving access to a space
 - navigation down and up the hierarchy of partitions, spaces and doors of the building in the simulator
 - send refresh, area and door requests to the server, and udpdate the data presented in the interface
 
@@ -29,7 +29,7 @@ Preconditions:
 # 1. Environment <a id="environment"></a>
 
 Installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it or the Android emulator etc.) takes time. You will eventually do it in the third milestone but now there are two shortcuts to do this tutorial and to start the exercise right away. 
-1. Simplest, no installation required whatsoever : go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same "file", not to different files like in IntelliJ, and consequently you need to not repeat some import sentences.
+1. Simplest, no installation required whatsoever : go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same "file", not to different files like in IntelliJ, and consequently you need to not repeat and move to the top the imports.
 <br>
 <br>
 ![](dartpad_dev.png)
@@ -50,7 +50,7 @@ Then
 
 First step is to create Dart classes to represent partitions, spaces and doors. These classes won't have methods but just hold data to be displayed in the user interface. Hence, we won't be able to order any action yet.
 
-In a mobile screen it is infeasible to show the whole hierarchy, so we will show at each moment the children of a certain node: the child partitions and spaces of a father partition, or the doors of an space. The name of the father node will be displayed as the title of the screen.
+In a mobile screen it is infeasible to show the whole hierarchy, so we will show at each moment the children of a certain node: the child partitions and spaces of a father partition, or the doors of a space. The name of the father node will be displayed as the title of the screen.
 
 Since the data to show is different for areas and doors, there will be two different screens, views in Flutter terms, one for each type. 
 
@@ -665,38 +665,27 @@ private RequestChildren makeRequestChildren(String[] tokens) {
 
 # 4. Connexion with the Java webserver : client side
 
-Now switch to the Flutter project. We have to add code to send http requests to the server and get the corresponding answer.
+Now switch to the Flutter project. We have to add code to send http requests to the server and get the corresponding answer. Remember that here we will only deal with the child request to implement navigation, not with area requests with lock and unlock actions.
 
-**Important** : study [this part](https://flutter.dev/docs/cookbook/networking/update-data) of the Flutter documentation to understand the code below.
+
+**Important** : before proceeding, study the [Flutter documentation on networking](https://flutter.dev/docs/cookbook/networking/update-data) to understand the code below, that makes a wide use of futures, ``async``, ``await`` and ``then``.
 
 **1.** Make a new file ``requests.dart`` with the following content:
 
 ```dart
-import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
+
 import 'tree.dart';
 
-final http.Client client = http.Client();
-// better than http.get() if multiple requests to the same server
-
-// If you connect the Android emulator to the webserver listening to localhost:8080
-const String baseUrl = "http://10.0.2.2:8080";
-
-// If instead you want to use a real phone, you need ngrok to redirect
-// localhost:8080 to some temporal Url that ngrok.com provides for free: run
-// "ngrok http 8080" and replace the address in the sentence below
-//const String baseUrl = "http://59c1d5a02fa5.ngrok.io";
-// in linux I've installed ngrok with "sudo npm install ngrok -g". On linux, windows,
-// mac download it from https://ngrok.com/. More on this here
-// https://medium.com/@vnbnews.vn/how-can-i-access-my-localhost-from-my-real-android-ios-device-d037fd192cdd
-
-Future<Tree> getTree(int id) async {
-  String uri = "$baseUrl/get_tree?$id";
-  final response = await client.get(Uri.parse(uri)); // updated 16-dec-2022
-  // response is NOT a Future because of await but since getTree() is async,
-  // execution continues (leaves this function) until response is available,
-  // and then we come back here
+Future<Tree> getTree(String areaId) async {
+  const String BASE_URL = "http://localhost:8080";
+  Uri uri = Uri.parse("${BASE_URL}/get_children?$areaId");
+  final response = await http.get(uri);
+  // response is NOT a Future because of await
   if (response.statusCode == 200) {
+    // TODO: change prints by logs, use package Logger for instance 
+    // which is the most popular, see https://pub.dev/packages/logger
     print("statusCode=$response.statusCode");
     print(response.body);
     // If the server did return a 200 OK response, then parse the JSON.
@@ -705,252 +694,229 @@ Future<Tree> getTree(int id) async {
   } else {
     // If the server did not return a 200 OK response, then throw an exception.
     print("statusCode=$response.statusCode");
-    throw Exception('Failed to get children');
-  }
-}
-
-Future<void> start(int id) async {
-  String uri = "$baseUrl/start?$id";
-  final response = await client.get(uri);
-  if (response.statusCode == 200) {
-    print("statusCode=$response.statusCode");
-  } else {
-    print("statusCode=$response.statusCode");
-    throw Exception('Failed to get children');
-  }
-}
-
-Future<void> stop(int id) async {
-  String uri = "$baseUrl/stop?$id";
-  final response = await client.get(uri);
-  if (response.statusCode == 200) {
-    print("statusCode=$response.statusCode");
-  } else {
-    print("statusCode=$response.statusCode");
-    throw Exception('Failed to get children');
+    throw Exception('failed to get answer to request $uri');
   }
 }
 ```
 
-**2.** Open ``pubspec.yaml`` and add the ``http`` library dependence 
+The ``http`` library makes easy to send http request to a server and receive and parse the answer. Read this [tutorial](https://dart.dev/tutorials/server/fetch-data) in the Dart website.
+
+
+**2.** Some errors appear because we have not yet installed the imported library ``http``. Open ``pubspec.yaml`` and add the ``http`` library
 
 ```yaml
 dependencies:
-  http: ^0.13.0
-  intl: ^0.17.0
-  flutter:
-    sdk: flutter
+  http: ^1.1.0
 ```
 
-go back to `requests.dart` and click on `Get dependencies`.
+Go back to `requests.dart` and cick ``Pub get`` to download it.
 
-**3.** Add attribute id to ``PageActivities``
-
-```dart
-class PageActivities extends StatefulWidget {
-  int id;
-
-  PageActivities(this.id);
-```
-
-**4.** Update ``main.dart`` adding parameter 0 to the constructor which means that we are going to start the applicacion showing children's root because by convention (you have to enforce it in your Java timetracker project) the root has id 0.
+**3.** Edit ``tree.dat`` to update the class ``Tree``
 
 ```dart
-home: PageActivities(0)
-```
+class Tree {
+  late Area root;
 
-**5.** Update class ``_PageActivitiesState`` to obtain the id from ``PageActivities`` and from it the one-level tree through an http request. Since we don't konw when the response will be available we have to introduce futures.
-
-```dart
-import 'package:codelab_timetracker/tree.dart' hide getTree;
-// the old getTree()
-import 'package:codelab_timetracker/requests.dart';
-// has the new getTree() that sends an http request to the server
-```
-
-```dart
-class _PageActivitiesState extends State<PageActivities> {
-  int id;
-  Future<Tree> futureTree;
-
-  @override
-  void initState() {
-    super.initState();
-    id = widget.id; // of PageActivities
-    futureTree = getTree(id);
-  }
-```
-
-**6.** Update ``build()`` and ``_buildRow()`` to user futures. See how to use futures with a listview in this [post](https://medium.com/nonstopio/flutter-future-builder-with-list-view-builder-d7212314e8c9)
-
-```dart
-  // future with listview
-  // https://medium.com/nonstopio/flutter-future-builder-with-list-view-builder-d7212314e8c9
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Tree>(
-      future: futureTree,
-      // this makes the tree of children, when available, go into snapshot.data
-      builder: (context, snapshot) {
-        // anonymous function
-        if (snapshot.hasData) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(snapshot.data!.root.name), // updated 16-dec-2022
-              actions: <Widget>[
-                IconButton(icon: Icon(Icons.home),
-                    onPressed: () {} // TODO go home page = root
-                ),
-                //TODO other actions
-              ],
-            ),
-            body: ListView.separated(
-              // it's like ListView.builder() but better because it includes a separator between items
-              padding: const EdgeInsets.all(16.0),
-              itemCount: snapshot.data!.root.children.length, // updated 16-dec-2022
-              itemBuilder: (BuildContext context, int index) =>
-                  _buildRow(snapshot.data!.root.children[index], index), // updated 16-dec-2022
-              separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
+  Tree(Map<String, dynamic> dec) {
+    // 1 level tree, root and children only, root is either Partition or Space.
+    // If Partition children are Partition or Space, that is, Area. If root
+    // is a Space, children are Door.
+    // There is a JSON field 'class' that tells the type of Area.
+    if (dec['class'] == "partition") {
+      List<Area> children = <Area>[]; // is growable
+      for (Map<String, dynamic> area in dec['areas']) {
+        if (area['class'] == "partition") {
+          children.add(Partition(area['id'], <Area>[]));
+        } else if (area['class'] == "space") {
+          children.add(Space(area['id'], <Door>[]));
+        } else {
+          assert(false);
         }
-        // By default, show a progress indicator
-        return Container(
-            height: MediaQuery.of(context).size.height,
-            color: Colors.white,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ));
-      },
-    );
-  }
-  ```
-
-```dart
-  Widget _buildRow(Activity activity, int index) {
-    String strDuration = Duration(seconds: activity.duration).toString().split('.').first;
-    // split by '.' and taking first element of resulting list removes the microseconds part
-    if (activity is Project) {
-      return ListTile(
-        title: Text('${activity.name}'),
-        trailing: Text('$strDuration'),
-        onTap: () => _navigateDownActivities(activity.id),
-      );
-    } else if (activity is Task) {
-      Task task = activity as Task; 
-      // at the moment is the same, maybe changes in the future
-      Widget trailing;
-      trailing = Text('$strDuration');
-
-      return ListTile(
-        title: Text('${activity.name}'),
-        trailing: trailing,
-        onTap: () => _navigateDownIntervals(activity.id),
-        onLongPress: () {}, // TODO start/stop counting the time for tis task
-      );
+      }
+      root = Partition(dec['id'], children);
+    } else if (dec['class'] == "space") {
+      List<Door> children = <Door>[];
+      for (Map<String, dynamic> d in dec['access_doors']) {
+        children.add(Door(id: d['id'], state: d['state'], closed: d['closed']));
+      }
+      root = Space(dec['id'], children);
+    } else {
+      assert(false);
     }
   }
+}
 ```
 
-
-**7.** Update ``_navigateDownIntervals()`` and add ``_navigateDownActivities()`` so that we pass the position of the element on which we have tapped to the constructor of ``PageActivities`` and ``PageIntervals``. Then, in the ``initState`` they send the http request to get the children of this element, either projects and tasks or intervals.
-
-```dart
-  void _navigateDownActivities(int childId) {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(
-          builder: (context) => PageActivities(childId),
-        ));
-  }
-
-  void _navigateDownIntervals(int childId) {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(
-          builder: (context) => PageIntervals(childId),
-        ));
-  }
-```
-
-**8.** There is still a problem because we need to update ``PageIntervals`` like we have done with ``PageActivities``, first introduce id and futures, then update ``build()`` (but not ``_buildRow()``):
+**4.** Now we are going to update the two screens, starting with ``screen_partition.dart``. Since ``getTree()`` returns a future, we have to adapt the list view to work with futures also. And the method ``initState()`` where it is invoked.
 
 ```dart
-import 'package:codelab_timetracker/tree.dart' as Tree hide getTree;
-// to avoid collision with an Interval class in another library
-import 'package:codelab_timetracker/requests.dart';
-```
-
-```dart
-class PageIntervals extends StatefulWidget {
-  int id;
-
-  PageIntervals(this.id);
-```
-
-```dart
-class _PageIntervalsState extends State<PageIntervals> {
-  int id;
-  Future<Tree.Tree> futureTree;
+class _ScreenPartitionState extends State<ScreenPartition> {
+  late Future<Tree> futureTree;
 
   @override
   void initState() {
     super.initState();
-    id = widget.id;
-    futureTree = getTree(id);
+    futureTree = getTree(widget.id);
   }
 ```
+
+The result of ``getTree()`` goes to a new attribute ``futureTree``, and the builder of ``_ScreenPartitionState`` is not an ``Scaffold`` as before but a ``FutureBuilder`` object, whose constructor has as paramteres a future, ``futureTree`` and a builder, an ``Scaffold`` as before. 
 
 ```dart
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Tree.Tree>(
-      future: futureTree,
-      // this makes the tree of children, when available, go into snapshot.data
-      builder: (context, snapshot) {
-        // anonymous function
-        if (snapshot.hasData) {
-          int numChildren = snapshot.data!.root.children.length; // updated 16-dec-2022
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(snapshot.data!.root.name), // updated 16-dec-2022
-              actions: <Widget>[
-                IconButton(icon: Icon(Icons.home),
-                    onPressed: () {}, // TODO
-                )
-              ],
-            ),
-            body: ListView.separated(
-              // it's like ListView.builder() but better because it includes a separator between items
-              padding: const EdgeInsets.all(16.0),
-              itemCount: numChildren,
-              itemBuilder: (BuildContext context, int index) =>
-                  _buildRow(snapshot.data!.root.children[index], index), // updated 16-dec-2022
-              separatorBuilder: (BuildContext context, int index) =>
-              const Divider(),
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
-        }
-        // By default, show a progress indicator
-        return Container(
-            height: MediaQuery.of(context).size.height,
-            color: Colors.white,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ));
-      },
-    );
+// future with listview
+// https://medium.com/nonstopio/flutter-future-builder-with-list-view-builder-d7212314e8c9
+@override
+Widget build(BuildContext context) {
+  return FutureBuilder<Tree>(
+    future: futureTree,
+    builder: (context, snapshot) {
+      // anonymous function
+      if (snapshot.hasData) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            title: Text(snapshot.data!.root.id),
+            actions: <Widget>[
+              IconButton(icon: const Icon(Icons.home), onPressed: () {}
+                  // TODO go home page = root
+                  ),
+              //TODO other actions
+            ],
+          ),
+          body: ListView.separated(
+            // it's like ListView.builder() but better because it includes a separator between items
+            padding: const EdgeInsets.all(16.0),
+            itemCount: snapshot.data!.root.children.length,
+            itemBuilder: (BuildContext context, int i) =>
+                _buildRow(snapshot.data!.root.children[i], i),
+            separatorBuilder: (BuildContext context, int index) =>
+                const Divider(),
+          ),
+        );
+      } else if (snapshot.hasError) {
+        return Text("${snapshot.error}");
+      }
+      // By default, show a progress indicator
+      return Container(
+          height: MediaQuery.of(context).size.height,
+          color: Colors.white,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ));
+    },
+  );
+}
+```
+
+This ``FutureBuilder`` has an atribute ``snapshot`` that contains the ``Tree`` eventually returned by ``getTree()`` in its field ``data``. The ``!`` operator checks it is not null. While the app is waiting for a response to the http request, it shows the typical progress indicator ![](circular_progress_petit.jpg)
+
+Methods ``_buildRow()``, ``_navigateDownPartition()`` and ``_navigateDownPartition()`` don't change (for the moment).
+
+**5.** Next we have to update ``screen_space.dart``. The "good news" is that the changes to perform are the same : we will have the same ``initState()``, ``build()`` than in ``screen_partition.dart``. We are not going to deal with code redundancy now because there are chances these methods will change once we add actions or buttons to the list items. If finally they have to be identical you have to factor out the common parts.
+
+>At this point you can run first the Java server, that keeps listening to requests to address ``localhost:8080``, and then run the client app that sends ``get_children`` requests to this address. You'll see the same as in the animation at the beginning of this tutorial, only that now the displayed data come from the webserver and if you open/close a door, or change its state with the simulator, the changes will be reflected in the app. Check it!
+
+
+# 5. Refinements
+
+## 5.1 Automatic refresh
+
+If you do it, you'll realize that the changes made with the simulator on the doors don't appear simultaneously in the app. Suppose you are already seeing the screen with the two doors of the parking, and they are both closed. You open one of them with the simulator, but the app still displays it's closed. The reason is that the app received the data on the doors before you opened the door with the simulator, when it had to display the doors of the parking and therefore re-create the state of ``ScreenSpace`` executing its ``initState()``. If you go up and down again, the door information will be updated.
+
+Of course, we would like changes in the data show now by the app to be updated automatically. This is possible and easy, but adds a few more lines of code : you have to instantiate a ``Timer`` similar to that of the clock in Java and instruct it to periodically execute ``getTree()`` and ``setState( () {} )`` to get data up to date and redraw the interface. You can find an example [here](https://github.com/disseny-de-software/tutorial_timetracker_app/blob/main/tutorial_timetracker_app.md#7-automatic-refresh). For the moment we put this improvement in our TODO list.
+
+## 5.2 Redraw versus re-create
+
+When "going up" from screen B to screen A we won't notice but changes in the data shown by A are not updated, we'll see the same screen as before. The problem is that "going up" does not call ``initState()`` and as a consequence ``getTree()``, so the data shown is the same. But we don't notice it because the partitions screen just display the names of child areas, that have no state or other data associated, for the moment. This could change as you improve the user interface desing, so this improvement is mandatory.
+
+The solution is quick and easy: make a refresh method that invokes ``getTree()`` and ``setState()``, and invoke it when "going up":
+
+```dart
+  void _refresh() async {
+    futureTree = getTree(widget.id);
+    setState(() {});
+  }
+
+  void _navigateDownPartition(String childId) {
+    //https://stackoverflow.com/questions/49830553/how-to-go-back-and-refresh-the-previous-page-in-flutter?noredirect=1&lq=1
+    // but doing _refresh(); without then() after push may also work
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(
+      builder: (context) => ScreenPartition(id: childId),
+    ))
+        .then((var value) {
+      _refresh();
+    });
+  }
+
+  void _navigateDownSpace(String childId) {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(
+      builder: (context) => ScreenSpace(id: childId),
+    ))
+        .then((var value) {
+      _refresh();
+    });
   }
 ```
 
----
 
-# 5. Home button
+## 5.3 Hints
 
-In method ``build()`` of ``PageActivities.dart`` *and*  ``PageIntervals.dart`` do
+**Date and time formatters**. Http reader and area requests like this 
+
+```
+http://localhost:8080/reader?credential=11343&action=unlock&datetime=2023-09-05T09:30&doorId=D2
+```
+
+include the present date and time (it matters for its authorization or not). In order the app can send these kind of requests you have to convert Dart's date and time to a string following this format. The following code may help:
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+
+class Utils {
+  static final DateFormat _dateFormatter = DateFormat("yyyy-MM-dd");
+  static final DateFormat _timeFormatter = DateFormat("HH:mm");
+    
+  static String formattedDate(date) {
+    return _dateFormatter.format(date);
+  }
+
+  static String formattedTime(time) {
+    return  _timeFormatter.format(
+      DateTime(1, 1, 1, time.hour, time.minute));
+  }
+
+  static String formattedDateTime(date, time) {
+    return "${formattedDate(date)}T${formattedTime(time)}";
+  }
+}
+
+void main() {
+  DateTime date = DateTime.now();
+  TimeOfDay time = TimeOfDay.now();
+  print(Utils.formattedDateTime(date, time));
+}
+```
+
+**Home button**. These sentences are useful to implement the home button:
+
+```dart
+  while(Navigator.of(context).canPop()) {
+    print("pop");
+    Navigator.of(context).pop();
+  }
+  // this works also
+  // Navigator.popUntil(context, ModalRoute.withName('/'));
+  // Now add what to show, the top
+```
+
+<!--
+## 5.3 Home button
+
+This code sniped implements the behaviour of the home button: going up to the top of the hierarchy.
 
 ```dart
 IconButton(icon: Icon(Icons.home),
@@ -962,186 +928,7 @@ IconButton(icon: Icon(Icons.home),
   /* this works also:
   Navigator.popUntil(context, ModalRoute.withName('/'));
   */
-  PageActivities(0);
+  ScreenPartition("ROOT");
 }),
 ```
-
----
-
-# 6. Count the time
-
-Now the navigation throughout the tree of projects, tasks and intervals is complete. However, we can't yet start/stop a task. We have to ask for it by providing a function to the ``onLongPress`` parameter of ``ListView`` constructor in ``PageActivities._buildRow()``:
-
-```dart
-onLongPress: () {
-  if ((activity as Task).active) {
-    stop(activity.id);
-  } else {
-    start(activity.id);
-  }
-},
-```
-
-Once a task is started, when we navigate to its content we see a new interval. If we go up and down again, we can see the duration and final dates are updated. But there are several problems:
-
-1. the duration of the task shown in the home screen does not change, as we would like to see
-1. only when we 'go down' we see the duration up to date, and not when we 'go up'
-1. likewise, duration and final date of the new interval changes only when we enter into this screen ('go down')
-1. duration (and final date in the case of the intervals screen) does not change when a task is active or a project has an active task among its descendants
-
-The problem is that we are not updating the state of the screen showing the task, and we only update the state of the intervals screen when we go down because this is implicit. We have to tell Flutter the state has changed so it can redraw the screen.
-
-Read this [post](//https://stackoverflow.com/questions/49830553/how-to-go-back-and-refresh-the-previous-page-in-flutter?noredirect=1&lq=1) for an in depth explanation.
-
-In ``page_activities.dart``, do these changes:
-
-```dart
-void _refresh() async {
-  futureTree = getTree(id); // to be used in build()
-  setState(() {});
-}
-```
-
-The assignment of ``futureTree`` should go in the setState body but Flutter documentation recommends to put futures and asyncs inside it, this is why the body is empty.
-
-```dart
-onLongPress: () {
-  if ((activity as Task).active) {
-    stop(activity.id);
-    _refresh(); // to show immediately that task has started
-  } else {
-    start(activity.id);
-    _refresh(); // to show immediately that task has stopped
-  }
-},
-```
-
-```dart
-void _navigateDownActivities(int childId) {
-  // we can not do just _refresh() because then the up arrow doesnt appear in the appbar
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(
-        builder: (context) => PageActivities(childId),
-      )).then( (var value) {
-        _refresh();
-  });
-}
-```
-
-```dart
-void _navigateDownIntervals(int childId) {
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(
-        builder: (context) => PageIntervals(childId),
-      )).then( (var value) {
-        _refresh();
-  });
-  //https://stackoverflow.com/questions/49830553/how-to-go-back-and-refresh-the-previous-page-in-flutter?noredirect=1&lq=1
-}
-```
-
-With this we solve problems 1-3 but no yet 4, that is, showing the data of active tasks, projects and intervals all the time, not just when we go up and down. We need some mechanism to periodically update the screen. We'll address this in the next section.
-
----
-
-# 7. Automatic refresh
-
-The solution to the periodic refresh of a screen is copied from this [post](https://stackoverflow.com/questions/53919391/refresh-flutter-text-widget-content-every-5-minutes-or-periodically).
-
-We'll update the state of the screen periodically by first adding a ``Timer`` attribute to _PageActivitiesState and then _PageIntervalsState. For the moment we'll work on the first class.
-
-**1.** Add a ``Timer`` attribute and periode refresh like in the code below. You'll need to import the `async` library. More on the Timer class in the Flutter [reference documentation](https://api.flutter.dev/flutter/dart-async/Timer-class.html) and usage examples in this [post](https://fluttermaster.com/tips-to-use-timer-in-dart-and-flutter/).
-
-```dart
-import 'dart:async';
-
-class _PageActivitiesState extends State<PageActivities> {
-  int id;
-  Future<Tree> futureTree;
-
-  Timer _timer;
-  static const int periodeRefresh = 6; 
-  // better a multiple of periode in TimeTracker, 2 seconds
-```
-
-**2.** Add method ``_activateTimer()`` that initializes it and specifies what to do every periode. The opposite action, deactivate the timer, is simply ``_timer.cancel()``.
-
-```dart
-void _activateTimer() {
-  _timer = Timer.periodic(Duration(seconds: periodeRefresh), (Timer t) {
-    futureTree = getTree(id);
-    setState(() {});
-  });
-}
-```
-
-**3.** Now write the sentences to activate and deactivate the timer. Activation must happen each time we show the screen, the very first time it shows and subsequent times when we 'go down' from its parent and show it. Also, each time we 'go down', to either another projects/tasks screen or an intervals screen and then 'go up'.
-
-We have to stop the timer when we 'go down' and 'go up'. Just in case, we do it also at the ``dispose`` method.
- 
-
-```dart
-@override
-void initState() {
-  super.initState();
-  id = widget.id;
-  futureTree = getTree(id);
-  _activateTimer();
-}
-```
-
-```dart
-void _navigateDownActivities(int childId) {
-  _timer.cancel();
-  // we can not do just _refresh() because then the up arrow doesnt appear in the appbar
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(
-        builder: (context) => PageActivities(childId),
-      )).then( (var value) {
-        _activateTimer();
-        _refresh();
-  });
-  //https://stackoverflow.com/questions/49830553/how-to-go-back-and-refresh-the-previous-page-in-flutter?noredirect=1&lq=1
-}
-
-void _navigateDownIntervals(int childId) {
-  _timer.cancel();
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(
-        builder: (context) => PageIntervals(childId),
-      )).then( (var value) {
-        _activateTimer();
-        _refresh();
-  });
-}
-```
-
-Note that both ``_activateTimer()`` and ``_refresh()`` get the updated one-level tree to show and change the state to provoke redrawing the screen, so it seems we could get rid of ``_refresh``. But then the problem is that when we start a task are not going to see changes until after 6 seconds later (at most). Since we want the interface to be responsive, we keep it.
-
-```dart
-@override
-void dispose() {
-  // "The framework calls this method when this State object will never build again"
-  // therefore when going up
-  _timer.cancel();
-  super.dispose();
-}
-```
-
-**5.** Run the application doing a hot reload and you'll see that when you start a task, its duration and that of the antecessor projects us updated automatically every 6 seconds. But not the intervals screen. To do so, in class ``_PageIntervalsState`` do the same as in ``_PageActivitiesState``:
-- add the attributes ``_timer`` and ``periodeRefresh`` (set to 6 seconds)
-- add sentence ``_activateTimer();`` to method ``initState()``
-- copy the methods ``_activateTimer()`` and ``dispose()`` (later we should somehow avoid this redundacy)
-
-**6.** Run again the application and check that also the duration and final date of the active interval changes periodically.
-
----
-
-# 8. Format date and time
-
-We leave two details for you to implement:
-
-- Dates and duration are formated with the same expressions in several places. Make utility functions ``formatDuration()`` and ``formatDate()`` to avoid redundancy and allow modifying the output format with a single change in the code. This can be useful for localization of the app.
-
-- There is no cue to show what is active at each moment (task, last interval of an active task, project with an active task as decendant). Add it to the interface. For instance show a clock icon and/or change the color of the text. 
-
+-->
