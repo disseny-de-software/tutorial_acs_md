@@ -827,15 +827,32 @@ Methods ``_buildRow()``, ``_navigateDownPartition()`` and ``_navigateDownPartiti
 
 # 5. Refinements
 
-## 5.1 Automatic refresh
+## 5.1 Tunneling
+
+The webserver and the client app run in your computer if you have chosen as target the desktop computer or the Android emulator. Or better, you have connected a mobile to its USB port and the app runs there. There's a third possibility that is to unplug the mobile and make the communication happen thorugh internet "for real". 
+
+Since we are not going to install the webserver into a dedicated machine with a fixed web address, what we need is tunneling : have the address of another web server that redirects the requests to our Java webserver, that is, to ``http://localhost:8080``.
+
+``ngrok`` from https://ngrok.com/ is a small and free application for Windows, Linux, MacOS that does this. Each time you run it like
+
+```bash
+$ ngrok http 8080
+```
+
+it prints a one-time use address like ``http://f51fb19f.ngrok.io`` that you have to assign to the constant ``BASE_URL`` in function ``getTree()``, in ``requests.dart``.
+
+An alternative to ``ngrok`` is https://serveo.net that does the same but does not need to install anything. You can even request a multi-use address.
+  
+
+## 5.2 Automatic refresh
 
 If you do it, you'll realize that the changes made with the simulator on the doors don't appear simultaneously in the app. Suppose you are already seeing the screen with the two doors of the parking, and they are both closed. You open one of them with the simulator, but the app still displays it's closed. The reason is that the app received the data on the doors before you opened the door with the simulator, when it had to display the doors of the parking and therefore re-create the state of ``ScreenSpace`` executing its ``initState()``. If you go up and down again, the door information will be updated.
 
-Of course, we would like changes in the data show now by the app to be updated automatically. This is possible and easy, but adds a few more lines of code : you have to instantiate a ``Timer`` similar to that of the clock in Java and instruct it to periodically execute ``getTree()`` and ``setState( () {} )`` to get data up to date and redraw the interface. You can find an example [here](https://github.com/disseny-de-software/tutorial_timetracker_app/blob/main/tutorial_timetracker_app.md#7-automatic-refresh). For the moment we put this improvement in our TODO list.
+Of course, we would like the changes in the data show now by the app to be updated automatically. This is possible and easy, but adds a few more lines of code : you have to instantiate a ``Timer`` similar to that of the clock in Java and instruct it to periodically execute ``getTree()`` and ``setState( () {} )`` to get data up to date and redraw the interface. You can find an example [here](https://github.com/disseny-de-software/tutorial_timetracker_app/blob/main/tutorial_timetracker_app.md#7-automatic-refresh). For the moment put this improvement in your TODO list.
 
-## 5.2 Redraw versus re-create
+## 5.3 Redraw versus re-create
 
-When "going up" from screen B to screen A we won't notice but changes in the data shown by A are not updated, we'll see the same screen as before. The problem is that "going up" does not call ``initState()`` and as a consequence ``getTree()``, so the data shown is the same. But we don't notice it because the partitions screen just display the names of child areas, that have no state or other data associated, for the moment. This could change as you improve the user interface desing, so this improvement is mandatory.
+When "going up" from screen B to screen A we won't notice but changes in the data shown by A are not updated, we see the same screen as before. The problem is that "going up" does not call ``initState()`` and as a consequence ``getTree()``, so the data shown is the same. But we don't notice it because the partitions screen just display the names of child areas, that have no state or other data associated, for the moment. This could change as you improve the user interface desing, so this improvement is mandatory.
 
 The solution is quick and easy: make a refresh method that invokes ``getTree()`` and ``setState()``, and invoke it when "going up":
 
@@ -869,7 +886,7 @@ The solution is quick and easy: make a refresh method that invokes ``getTree()``
 ```
 
 
-## 5.3 Hints
+# 6. Hints
 
 **Date and time formatters**. Http reader and area requests like this 
 
@@ -919,23 +936,3 @@ void main() {
   // Navigator.popUntil(context, ModalRoute.withName('/'));
   // Now add what to show, the top
 ```
-
-<!--
-## 5.3 Home button
-
-This code sniped implements the behaviour of the home button: going up to the top of the hierarchy.
-
-```dart
-IconButton(icon: Icon(Icons.home),
-  onPressed: () {
-  while(Navigator.of(context).canPop()) {
-    print("pop");
-    Navigator.of(context).pop();
-  }
-  /* this works also:
-  Navigator.popUntil(context, ModalRoute.withName('/'));
-  */
-  ScreenPartition("ROOT");
-}),
-```
--->
