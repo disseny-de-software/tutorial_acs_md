@@ -34,16 +34,20 @@ Installing Flutter plus everything needed to develop for Android (the Android vi
 1. Simplest, no installation required whatsoever : go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same "file", not to different files like in IntelliJ, and consequently you need to not repeat and move to the top the imports.
 <br>
 <br>
+
 ![](dartpad_dev.png)
 
 2. Use IntelliJ but defer execution on your mobile or the emulator and instead set as application target your Linux or Windows desktop. Select File $\rightarrow$ New  $\rightarrow$ Project  $\rightarrow$ Flutter and configuration
 <br>
 <br>
+
 ![](platforms.png)
 <br>
+
 Then 
 <br>
 <br>
+
 ![](linux_desktop.png)
 
 <br>
