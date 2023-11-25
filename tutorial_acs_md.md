@@ -405,7 +405,8 @@ void initState() {
 
   Widget _buildRow(Door door, int index) {
   return ListTile(
-    title: Text('D ${door.id}')
+    title: Text('D ${door.id}'),
+    trailing: Text('${door.state}, closed=${door.closed}'),
   );
 }
 ```
@@ -498,7 +499,7 @@ home: const ScreenPartition(id: "building"),
 
 ## 2.5 Colors
 
-Last thing we will do is to add some color to the two screens we have implemented. Why color ? "Color creates meaning and communicates hierarchy, state, and brand", see Material documentation [here](https://m3.material.io/styles/color/the-color-system/key-colors-tones). Basically, an app instantiates a ``MaterialApp`` that has a ``ColorScheme``. This color scheme defines a set of colors labeled as primary, secondary, tertiary, plus onPrimary etc. These colors are shades or tones of a main color like ``Colors.blue`` or ``Colors.deepPurple`` (the default). Depending on the prominence or accent you want to give to an element of the interface (a button, text, text in the app bar, action buttons etc.) you can set its color as one of the color scheme.
+Last thing we will do is to add some color to the two screens we have implemented. Why color? "Color creates meaning and communicates hierarchy, state, and brand", see Material documentation [here](https://m3.material.io/styles/color/the-color-system/key-colors-tones). Basically, an app instantiates a ``MaterialApp`` that has a ``ColorScheme``. This color scheme defines a set of colors labeled as primary, secondary, tertiary, plus onPrimary etc. These colors are shades or tones of a main color like ``Colors.blue`` or ``Colors.deepPurple`` (the default). Depending on the prominence or accent you want to give to an element of the interface (a button, text, text in the app bar, action buttons etc.) you can set its color as one of the color scheme.
 
 In the following sentences we will select a color scheme around blue and "paint" the app bar background, text and the home icon.
 
@@ -526,9 +527,9 @@ This produces the screens of the animation at the begining of this tutorial.
 
 # 3. Connexion with the Java webserver : server side
 
-If you have been using Dartpad for point 1-2, now you have to move the Flutter code to an IntelliJ project, with desktop as target, or your mobile connected to a USB port, or use the Android emulator, because we are going to connect the app client with the Java webserver implementing de ACU.
+If you have been using Dartpad for point 1-2, now you have to move the Flutter code to either 1) an IntelliJ project, with desktop as target, or 2) your mobile connected to a USB port, or 3) use the Android emulator, because we are going to connect the app client with the Java webserver implementing de ACU. We recommend you option 1, to switch later to 2.
 
-Until now we have been working with fake, fixed tree of areas and doors. Fake because it lives on the side of the app, and fixed because the user can not perform actions to change it. Now we are going to get real data from the Java webserver through its REST API, that is, by http requests just like the simulator did. 
+Until now we have been working with a fake, fixed tree of areas and doors. Fake because it lives on the side of the app, and fixed because the user can not perform actions to change it. Now we are going to get real data from the Java webserver through its REST API, that is, by http requests just like the simulator did. 
 
 However, we are not going to implement actions to lock and unlock partitions and spaces and maybe others. It is up to you to design and implement this kind of interactions. We are just going to navigate the "real" hierarchy in the server.
 
