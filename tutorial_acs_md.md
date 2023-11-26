@@ -28,16 +28,19 @@ Preconditions:
 
 # 1. Environment <a id="environment"></a>
 
-Installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it or the Android emulator etc.) takes time. You will eventually do it in the third milestone but now there are two shortcuts to do this tutorial and to start the exercise right away. 
+Installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it or the Android emulator etc.) takes time. You will eventually do it but now there is a shortcut to do this tutorial and to start the third milestone right away. 
 <br>
 
+<!--
 1. Simplest, no installation required whatsoever : go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same "file", not to different files like in IntelliJ, and consequently you need to not repeat and move to the top the imports.
 <br>
 <br>
 
 ![](dartpad_dev.png)
 
-2. Use IntelliJ but defer execution on your mobile or the emulator and instead set as application target your Linux or Windows desktop. Select File $\rightarrow$ New  $\rightarrow$ Project  $\rightarrow$ Flutter and configuration
+-->
+
+Use IntelliJ but defer execution on your mobile or the emulator and instead set as application target your Linux or Windows desktop. Select File $\rightarrow$ New  $\rightarrow$ Project  $\rightarrow$ Flutter and configuration
 <br>
 <br>
 
